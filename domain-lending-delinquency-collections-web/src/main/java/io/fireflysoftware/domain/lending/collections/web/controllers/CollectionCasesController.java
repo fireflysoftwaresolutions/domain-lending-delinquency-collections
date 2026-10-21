@@ -17,7 +17,10 @@
 package io.fireflysoftware.domain.lending.collections.web.controllers;
 
 import io.fireflysoftware.core.lending.collections.sdk.model.CollectionCaseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.CollectionPromiseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.PaginationResponseCollectionCaseDTO;
 import io.fireflysoftware.domain.lending.collections.core.commands.CreateCollectionCaseCommand;
+import io.fireflysoftware.domain.lending.collections.core.commands.RegisterCollectionPromiseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseStatusCommand;
 import io.fireflysoftware.domain.lending.collections.core.services.CollectionCasesService;
@@ -57,6 +60,33 @@ public class CollectionCasesController {
 
     public CollectionCasesController(CollectionCasesService service) {
         this.service = service;
+    }
+
+    @Operation(summary = "List collection cases", description = "Reads the collection-case page from core-lending-delinquency-collections.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listed",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PaginationResponseCollectionCaseDTO.class)))
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<PaginationResponseCollectionCaseDTO>> list() {
+        return service.list().map(ResponseEntity::ok);
+    }
+
+    @Operation(summary = "Register payment promise", description = "Persists a payment promise on a collection case through core-lending-delinquency-collections.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Created",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CollectionPromiseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content)
+    })
+    @PostMapping(value = "/{collectionCaseId}/promises", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<CollectionPromiseDTO>> registerPaymentPromise(
+            @Parameter(description = "Core identifier", required = true) @PathVariable UUID collectionCaseId,
+            @RequestBody CollectionPromiseDTO body) {
+        return service.registerPromise(new RegisterCollectionPromiseCommand(
+                        collectionCaseId, body.getPromisedAmount(), body.getPromisedDate()))
+                .map(created -> ResponseEntity.status(HttpStatus.CREATED).body(created));
     }
 
     @Operation(summary = "Create collection case", description = "Runs the register saga against core-lending-delinquency-collections.")

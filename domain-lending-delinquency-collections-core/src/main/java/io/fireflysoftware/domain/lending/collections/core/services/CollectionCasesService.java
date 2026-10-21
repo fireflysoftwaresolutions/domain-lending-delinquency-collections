@@ -17,7 +17,10 @@
 package io.fireflysoftware.domain.lending.collections.core.services;
 
 import io.fireflysoftware.core.lending.collections.sdk.model.CollectionCaseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.CollectionPromiseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.PaginationResponseCollectionCaseDTO;
 import io.fireflysoftware.domain.lending.collections.core.commands.CreateCollectionCaseCommand;
+import io.fireflysoftware.domain.lending.collections.core.commands.RegisterCollectionPromiseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseStatusCommand;
 import reactor.core.publisher.Mono;
@@ -35,6 +38,21 @@ public interface CollectionCasesService {
      * @param command the create command
      * @return the record returned by the core
      */
+    /**
+     * Lists collection cases stored by the delinquency collections core.
+     *
+     * @return the core page
+     */
+    Mono<PaginationResponseCollectionCaseDTO> list();
+
+    /**
+     * Persists a payment promise on a collection case.
+     *
+     * @param command the promise to store
+     * @return the record returned by the core
+     */
+    Mono<CollectionPromiseDTO> registerPromise(RegisterCollectionPromiseCommand command);
+
     Mono<CollectionCaseDTO> create(CreateCollectionCaseCommand command);
 
     /**

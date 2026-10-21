@@ -17,8 +17,12 @@
 package io.fireflysoftware.domain.lending.collections.core.services;
 
 import io.fireflysoftware.core.lending.collections.sdk.model.CollectionCaseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.CollectionPromiseDTO;
+import io.fireflysoftware.core.lending.collections.sdk.model.PaginationResponseCollectionCaseDTO;
 import io.fireflysoftware.domain.lending.collections.core.commands.CreateCollectionCaseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.GetCollectionCaseQuery;
+import io.fireflysoftware.domain.lending.collections.core.commands.ListCollectionCasesQuery;
+import io.fireflysoftware.domain.lending.collections.core.commands.RegisterCollectionPromiseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.RemoveCollectionCaseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseCommand;
 import io.fireflysoftware.domain.lending.collections.core.commands.UpdateCollectionCaseStatusCommand;
@@ -48,6 +52,16 @@ public class CollectionCasesServiceImpl implements CollectionCasesService {
         this.sagaEngine = sagaEngine;
         this.queryBus = queryBus;
         this.commandBus = commandBus;
+    }
+
+    @Override
+    public Mono<PaginationResponseCollectionCaseDTO> list() {
+        return queryBus.query(new ListCollectionCasesQuery());
+    }
+
+    @Override
+    public Mono<CollectionPromiseDTO> registerPromise(RegisterCollectionPromiseCommand command) {
+        return commandBus.send(command);
     }
 
     @Override

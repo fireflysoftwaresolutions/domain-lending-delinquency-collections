@@ -17,6 +17,7 @@
 package io.fireflysoftware.domain.lending.collections.infra;
 
 import io.fireflysoftware.core.lending.collections.sdk.api.CollectionCaseApi;
+import io.fireflysoftware.core.lending.collections.sdk.api.CollectionPromiseApi;
 import io.fireflysoftware.core.lending.collections.sdk.api.CollectionStatusHistoryApi;
 import io.fireflysoftware.core.lending.collections.sdk.invoker.ApiClient;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +54,16 @@ public class CollectionsClientFactory {
     @Bean
     public CollectionStatusHistoryApi collectionStatusHistoryApi() {
         return new CollectionStatusHistoryApi(apiClient);
+    }
+
+    /**
+     * Creates the payment-promise client.
+     *
+     * @return the promise API
+     */
+    @Bean
+    public CollectionPromiseApi collectionPromiseApi() {
+        return new CollectionPromiseApi(apiClient);
     }
 
 }

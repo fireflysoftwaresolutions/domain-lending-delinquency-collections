@@ -189,6 +189,25 @@ paths:
         "404":
           description: Not found
   /api/v1/collection-cases:
+    get:
+      tags:
+      - CollectionCases
+      summary: List collection cases
+      description: Reads the collection-case page from core-lending-delinquency-collections.
+      operationId: list
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Listed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginationResponseCollectionCaseDTO"
     post:
       tags:
       - CollectionCases
@@ -216,6 +235,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CollectionCaseDTO"
+        "400":
+          description: Invalid request
+  /api/v1/collection-cases/{collectionCaseId}/promises:
+    post:
+      tags:
+      - CollectionCases
+      summary: Register payment promise
+      description: Persists a payment promise on a collection case through core-lending-delinquency-collections.
+      operationId: registerPaymentPromise
+      parameters:
+      - name: collectionCaseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionPromiseDTO"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionPromiseDTO"
         "400":
           description: Invalid request
 components:
@@ -291,3 +344,48 @@ components:
       properties:
         statusReason:
           type: string
+    PaginationResponseCollectionCaseDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionCaseDTO"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+    CollectionPromiseDTO:
+      type: object
+      properties:
+        collectionPromiseId:
+          type: string
+          format: uuid
+        collectionCaseId:
+          type: string
+          format: uuid
+        promisedDate:
+          type: string
+          format: date-time
+        promisedAmount:
+          type: number
+        actualPaidDate:
+          type: string
+          format: date-time
+        actualPaidAmount:
+          type: number
+        isKept:
+          type: boolean
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
