@@ -1,0 +1,293 @@
+openapi: 3.0.1
+info:
+  title: Domain Lending Delinquency Collections API
+  description: "Orchestrates collection cases through core-lending-delinquency-collections.\
+    \ It creates, updates, changes status, and closes collection cases through the\
+    \ delinquency collections core. Party, contract, and product identifiers stay\
+    \ UUIDs."
+  contact:
+    name: Firefly Software Foundation
+    email: dev@fireflysoftware.io
+  version: 1.0.0
+servers:
+- url: https://openplatform.fireflysoftware.io/domain-lending-delinquency-collections
+  description: Development Environment
+- url: /
+  description: Local Development Environment
+tags:
+- name: CollectionCases
+  description: Domain orchestration for collection cases
+paths:
+  /api/v1/collection-cases/{collectionCaseId}/status:
+    put:
+      tags:
+      - CollectionCases
+      summary: Update status
+      description: Runs the status saga against core-lending-delinquency-collections.
+      operationId: updateStatus
+      parameters:
+      - name: collectionCaseId
+        in: path
+        description: Core identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionCaseDTO"
+        "404":
+          description: Not found
+  /api/v1/collection-cases/{collectionCaseId}:
+    get:
+      tags:
+      - CollectionCases
+      summary: Get collection case
+      description: Reads one record from core-lending-delinquency-collections.
+      operationId: get
+      parameters:
+      - name: collectionCaseId
+        in: path
+        description: Core identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionCaseDTO"
+        "404":
+          description: Not found
+    put:
+      tags:
+      - CollectionCases
+      summary: Update collection case
+      description: Runs the update saga against core-lending-delinquency-collections.
+        Status is left unchanged.
+      operationId: update
+      parameters:
+      - name: collectionCaseId
+        in: path
+        description: Core identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionCaseDTO"
+        required: true
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionCaseDTO"
+        "404":
+          description: Not found
+    delete:
+      tags:
+      - CollectionCases
+      summary: Remove collection case
+      description: Deletes the record through core-lending-delinquency-collections
+        when that core allows removal.
+      operationId: remove
+      parameters:
+      - name: collectionCaseId
+        in: path
+        description: Core identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Removed
+        "404":
+          description: Not found
+  /api/v1/collection-cases/{collectionCaseId}/close:
+    post:
+      tags:
+      - CollectionCases
+      summary: Close collection case
+      description: Closes a collection case by writing CLOSED when the delinquency
+        collections core allows that status.
+      operationId: close
+      parameters:
+      - name: collectionCaseId
+        in: path
+        description: Core identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReasonRequest"
+        required: true
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionCaseDTO"
+        "404":
+          description: Not found
+  /api/v1/collection-cases:
+    post:
+      tags:
+      - CollectionCases
+      summary: Create collection case
+      description: Runs the register saga against core-lending-delinquency-collections.
+      operationId: create
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionCaseDTO"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionCaseDTO"
+        "400":
+          description: Invalid request
+components:
+  schemas:
+    StatusChangeRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        statusReason:
+          type: string
+    CollectionCaseDTO:
+      required:
+      - caseOpenedAt
+      - collectionStatus
+      - daysPastDue
+      - delinquencyStage
+      - loanServicingCaseId
+      - totalDue
+      type: object
+      properties:
+        collectionCaseId:
+          type: string
+          format: uuid
+          nullable: true
+        loanServicingCaseId:
+          type: string
+          format: uuid
+        collectionStatus:
+          type: string
+          enum:
+          - OPEN
+          - CLOSED
+          - LEGAL
+          - RESTRUCTURED
+          - SETTLED
+        daysPastDue:
+          type: integer
+          format: int32
+        delinquencyStage:
+          type: string
+          enum:
+          - EARLY
+          - MID
+          - LATE
+          - LEGAL
+          - WRITE_OFF
+        totalDue:
+          type: number
+        totalRecovered:
+          type: number
+          nullable: true
+        caseOpenedAt:
+          type: string
+          format: date-time
+        caseClosedAt:
+          type: string
+          format: date-time
+          nullable: true
+        remarks:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ReasonRequest:
+      type: object
+      properties:
+        statusReason:
+          type: string
